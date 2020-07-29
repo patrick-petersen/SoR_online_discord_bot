@@ -28,19 +28,25 @@ function Notifier() {
             webhook.send("Bot is online!");
         }
 
-        exitHook(() => {
-            console.log('Shutting down!');
-        });
+        const shutdownCallback = () => {
+            this.notify("Shutting down!");
+        }
+
+        exitHook(shutdownCallback.bind(this));
 
         setInterval(this.makeApiCallWithCallback.bind(this), timeout);
+        this.makeApiCallWithCallback.bind(this)();
     }
 
     this.shouldNotify = function(region, faction) {
+        console.log(this.lastState);
         if(this.lastState.hasOwnProperty(region)) {
             const regionObj = this.lastState[region];
+            console.log(regionObj);
             if(regionObj.hasOwnProperty(faction)) {
                 const keep = regionObj[faction];
-                return keep["lastAttack"] + minPauseBetweenAttacks < new Date().getTime();
+                console.log(keep);
+                return (keep["lastAttack"] + minPauseBetweenAttacks < new Date().getTime());
             }
             else {
                 return true;
@@ -52,6 +58,7 @@ function Notifier() {
     }
 
     this.setAttacked = function(region, faction) {
+        console.log(this.lastState);
         if(!this.lastState.hasOwnProperty(region)) {
             this.lastState[region] = {};
         }
@@ -120,8 +127,8 @@ function Notifier() {
         const keeps = [region["keep1"], region["keep2"]];
         keeps.forEach(keep => {
             if(this.isKeepUnderAttack(keep)) {
-                if(this.shouldNotify()) {
-                    const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name;
+                if(this.shouldNotify(region.name, keep["owner"])) {
+                    const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name + "\n@here";
                     this.notify(text);
                 }
                 this.setAttacked(region.name, keep["owner"]);

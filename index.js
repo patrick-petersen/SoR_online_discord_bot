@@ -1,8 +1,6 @@
 const https = require('https');
-const { Webhook } = require('discord-webhook-node');
+const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const exitHook = require('exit-hook');
-
-
 
 function Notifier() {
 
@@ -13,10 +11,38 @@ function Notifier() {
     const IMAGE_URL = 'https://www.soronline.us/logo.ico';
     const webhooks = [
         new Webhook("DiscordWebbhook1"),
-    ]
+    ];
+
+    const preFortKeeps = {
+        "Kadrin Valley": "Order",
+        "Black Crag": "Destro",
+        "Chaos Wastes": "Destro",
+        "Reikland": "Order",
+        "Caledor": "Destro",
+        "Eataine": "Order"
+    };
 
     //internal
     this.lastState = {};
+
+    this.sendStartupMessage = function () {
+        const embed = new MessageBuilder()
+            .setText("Discord Bot is online!")
+            .setTitle('State of the Realm Discord Bot is online!')
+            .setAuthor('Kalell', 'https://cdn.discordapp.com/embed/avatars/0.png')
+            .setURL('https://www.soronline.us/')
+            .addField('Functions', 'Sending out notifications if keeps are getting attacked')
+            .setColor('#00b0f4')
+            .setThumbnail(IMAGE_URL)
+            .setDescription('Created by Kalell with the help of Ruke\'s [sor_online](https://soronline.us)')
+            .setImage(IMAGE_URL)
+            .setTimestamp();
+
+        for (let index in webhooks) {
+            const webhook = webhooks[index];
+            webhook.send(embed);
+        }
+    }
 
     this.init = function () {
         const timeout = 1000 * 60; //timeout in milliseconds
@@ -25,11 +51,13 @@ function Notifier() {
             const webhook = webhooks[index];
             webhook.setUsername('SoR online discord bot');
             webhook.setAvatar(IMAGE_URL);
-            webhook.send("Bot is online!");
+            //webhook.send("Bot is online!");
         }
 
+        this.sendStartupMessage();
+
         const shutdownCallback = () => {
-            this.notify("Shutting down!");
+            this.sendDiscordNotification("Shutting down!");
         }
 
         exitHook(shutdownCallback.bind(this));
@@ -40,6 +68,11 @@ function Notifier() {
 
     this.shouldNotify = function(region, faction) {
         console.log(this.lastState);
+
+        if(region["keep1"]["owner"] === region["keep2"]["owner"]) {
+            return false;
+        }
+
         if(this.lastState.hasOwnProperty(region)) {
             const regionObj = this.lastState[region];
             console.log(regionObj);
@@ -55,6 +88,10 @@ function Notifier() {
         else {
             return true;
         }
+    }
+
+    this.isPreFortKeep = function(region, faction) {
+        return (preFortKeeps.hasOwnProperty(region) && preFortKeeps[region] == faction)
     }
 
     this.setAttacked = function(region, faction) {
@@ -127,10 +164,7 @@ function Notifier() {
         const keeps = [region["keep1"], region["keep2"]];
         keeps.forEach(keep => {
             if(this.isKeepUnderAttack(keep)) {
-                if(this.shouldNotify(region.name, keep["owner"])) {
-                    const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name + "\n@here";
-                    this.notify(text);
-                }
+                this.sendKeepNotification(region, keep);
                 this.setAttacked(region.name, keep["owner"]);
             }
             else {
@@ -139,19 +173,78 @@ function Notifier() {
         })
     }
 
-    this.notify = function (text) {
-        console.log(text);
+    this.sendKeepNotification = function(region, keep) {
+        if(this.shouldNotify(region.name, keep["owner"])) {
+            const defender = keep["owner"];
+            const attacker = (defender==="Order")?"Destruction":"Order";
+            const tier = region["tier"];
+            const regionName = region["name"];
+            const color = (defender==="Order")?"#ff0000":"#0000ff";
+
+            const aaoOwner = region["aaoOwner"];
+            const aao = region["aao"];
+
+            const orderPop = region["pop1"];
+            const destroPop = region["pop2"];
+
+            const bos = region["bos"];
+            const orderBOs = bos.reduce((sum, val) => {return sum + (val==="Order"?1:0)}, 0);
+            const destroBOs = bos.reduce((sum, val) => {return sum + (val==="Order"?0:1)}, 0);
+
+            const keep1 = region["keep1"];
+            const keep2 = region["keep2"];
+
+            const orderKeep = keep1["owner"]==="Order"?keep1:keep2;
+            const destroKeep = keep1["owner"]==="Order"?keep2:keep1;
+
+            const status = keep["status"];
+
+            const embed = new MessageBuilder()
+                .setTitle(attacker + " is attacking the " + defender + " keep in " + regionName);
+
+            if(status=== "Inner"
+                || status === "Outer"
+                || status === "Lord") {
+                embed.addField('Status', "At " + status + " " + keep["obj"] + "%")
+            }
+
+            embed.addField('Players', 'Order: ' + orderPop + "; Destruction: " + destroPop)
+                .addField('Rank', 'Order: ' + (":star:".repeat(orderKeep["rank"]))
+                    + "; Destruction: " + (":star:".repeat(destroKeep["rank"])))
+                .addField('AAO', aao + '% for: ' + aaoOwner)
+                .addField('BOs', 'Order: ' + orderBOs + "; Destruction: " + destroBOs)
+                .setColor(color)
+                .setThumbnail(IMAGE_URL)
+                .setFooter('Created by Kalell with the help of Ruke\'s sor_online')
+                .setImage(IMAGE_URL)
+                .setTimestamp();
+
+            if(this.isPreFortKeep(region.name, keep["owner"])) {
+                const text = "PRE FORT " + keep["owner"] + " keep under attack in " + region.name + "\n@here";
+                embed.setText(text);
+                this.sendDiscordNotification(embed);
+            }
+            else {
+                const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name;
+                embed.setText(text);
+                this.sendDiscordNotification(embed);
+            }
+        }
+    }
+
+    this.sendDiscordNotification = function (notification) {
+        console.log(notification);
 
         for (let index in webhooks) {
             const webhook = webhooks[index];
-            webhook.send(text);
+            webhook.send(notification);
         }
     }
 
     this.isKeepUnderAttack = function(keep) {
         //check if keep is under attack
-        return keep["status"] !== "Safe";
-        //"Outer" and "Inner" are possible
+        return (keep["status"] !== "Safe") && (keep["status"] !== "Locked");
+        //"Locked", "Safe", "Outer" and "Inner", "Lord" are possible,
     }
 }
 

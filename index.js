@@ -13,7 +13,12 @@ function Notifier() {
         //VZ zum testen
         new Webhook("DiscordWebbhook1"),
         //Offizieller VZ discord
-        //new Webhook("DiscordWebbhook2"),
+        new Webhook("DiscordWebbhook2"),
+    ];
+
+    const debugWebhooks = [
+        webhooks[0],
+
     ];
 
     const preFortKeeps = {
@@ -41,7 +46,7 @@ function Notifier() {
             .setImage(IMAGE_URL)
             .setTimestamp();
 
-        for (let index in webhooks) {
+        for (let index in debugWebhooks) {
             const webhook = webhooks[index];
             webhook.send(embed);
         }
@@ -60,7 +65,9 @@ function Notifier() {
         this.sendStartupMessage();
 
         const shutdownCallback = () => {
-            this.sendDiscordNotification("Shutting down!");
+            console.log("shutting down!");
+            //this does not send the message to the discord hook!
+            //this.sendDiscordNotification("Shutting down!");
         }
 
         exitHook(shutdownCallback.bind(this));

@@ -10,7 +10,9 @@ function Notifier() {
     //Discord settings
     const IMAGE_URL = 'https://www.soronline.us/logo.ico';
     const webhooks = [
+        //VZ zum testen
         new Webhook("DiscordWebbhook1"),
+        //Offizieller VZ discord
         //new Webhook("DiscordWebbhook2"),
     ];
 
@@ -69,10 +71,6 @@ function Notifier() {
 
     this.shouldNotify = function(region, faction) {
         console.log(this.lastState);
-
-        if(region.hasOwnProperty("keep1") && region.hasOwnProperty("keep2") && region["keep1"]["owner"] === region["keep2"]["owner"]) {
-            return false;
-        }
 
         if(this.lastState.hasOwnProperty(region)) {
             const regionObj = this.lastState[region];
@@ -164,7 +162,7 @@ function Notifier() {
     this.parseRegion = function(region) {
         const keeps = [region["keep1"], region["keep2"]];
         keeps.forEach(keep => {
-            if(this.isKeepUnderAttack(keep)) {
+            if(this.isKeepUnderAttack(region, keep)) {
                 this.sendKeepNotification(region, keep);
                 this.setAttacked(region.name, keep["owner"]);
             }
@@ -242,7 +240,16 @@ function Notifier() {
         }
     }
 
-    this.isKeepUnderAttack = function(keep) {
+    this.isKeepUnderAttack = function(region, keep) {
+        if(!region.hasOwnProperty("keep1")) {
+            return false;
+        }
+        if(!region.hasOwnProperty("keep2")) {
+            return false;
+        }
+        if(region["keep1"]["owner"] === region["keep2"]["owner"]) {
+            return false;
+        }
         //check if keep is under attack
         return (keep["status"] !== "Safe") && (keep["status"] !== "Locked");
         //"Locked", "Safe", "Outer" and "Inner", "Lord" are possible,

@@ -11,6 +11,7 @@ function Notifier() {
     const IMAGE_URL = 'https://www.soronline.us/logo.ico';
     const webhooks = [
         new Webhook("DiscordWebbhook1"),
+        //new Webhook("DiscordWebbhook2"),
     ];
 
     const preFortKeeps = {
@@ -69,7 +70,7 @@ function Notifier() {
     this.shouldNotify = function(region, faction) {
         console.log(this.lastState);
 
-        if(region["keep1"]["owner"] === region["keep2"]["owner"]) {
+        if(region.hasOwnProperty("keep1") && region.hasOwnProperty("keep2") && region["keep1"]["owner"] === region["keep2"]["owner"]) {
             return false;
         }
 

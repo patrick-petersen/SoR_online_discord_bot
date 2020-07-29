@@ -13,12 +13,11 @@ function Notifier() {
         //VZ zum testen
         new Webhook("DiscordWebbhook1"),
         //Offizieller VZ discord
-        new Webhook("DiscordWebbhook2"),
+        //new Webhook("DiscordWebbhook2"),
     ];
 
     const debugWebhooks = [
         webhooks[0],
-
     ];
 
     const preFortKeeps = {
@@ -39,7 +38,7 @@ function Notifier() {
             .setTitle('State of the Realm Discord Bot is online!')
             .setAuthor('Kalell', 'https://cdn.discordapp.com/embed/avatars/0.png')
             .setURL('https://www.soronline.us/')
-            .addField('Functions', 'Sending out notifications if keeps are getting attacked')
+            .addField('Functions', 'Sending out notifications if keeps, forts or cities are getting attacked')
             .setColor('#00b0f4')
             .setThumbnail(IMAGE_URL)
             .setDescription('Created by Kalell with the help of Ruke\'s [sor_online](https://soronline.us)')
@@ -97,7 +96,7 @@ function Notifier() {
     }
 
     this.isPreFortKeep = function(region, faction) {
-        return (preFortKeeps.hasOwnProperty(region) && preFortKeeps[region] == faction)
+        return (preFortKeeps.hasOwnProperty(region) && preFortKeeps[region] === faction)
     }
 
     this.setAttacked = function(region, faction) {
@@ -118,9 +117,16 @@ function Notifier() {
             const json = JSON.parse(response);
             const data = json[0].data;
             const dataJson = JSON.parse(data);
-            this.parseData(dataJson["keeps"]);
+            if(dataJson.hasOwnProperty("keeps"))
+                this.parseKeeps(dataJson["keeps"]);
+
+            if(dataJson.hasOwnProperty("forts"))
+                this.parseForts(dataJson["forts"]);
+
+            if(dataJson.hasOwnProperty("cities"))
+                this.parseCity(dataJson["cities"]);
         };
-        this.makeApiCall(callback)
+        this.makeApiCall(callback);
     }
 
     this.makeApiCall = function(callback) {
@@ -160,7 +166,73 @@ function Notifier() {
         req.end();
     }
 
-    this.parseData = function(data) {
+    this.parseCity = function (data) {
+        //[{"id":"1","data":"{\"keeps\": [{\"aao\": \"80\", \"bos\": [\"Destruction\", \"Neutral\", \"Order\", \"Destruction\"], \"name\": \"Reikland\", \"pop1\": \"23\", \"pop2\": \"42\", \"tier\": 4, \"keep1\": {\"obj\": \"Safe\", \"rank\": \"1\", \"owner\": \"Destruction\", \"rankup\": \"23\", \"status\": \"Safe\"}, \"keep2\": {\"obj\": \"Safe\", \"rank\": \"3\", \"owner\": \"Order\", \"rankup\": \"0\", \"status\": \"Safe\"}, \"aaoOwner\": \"Order\"}],
+        // \"cities\": [{\"name\": \"Altdorf\", \"rank\": \"3\", \"time\": \"138\", \"dwins\": \"0\", \"owins\": \"0\", \"owner\": \"Order\", \"instances\": \"25\"}], \"zonelocks\": [{\"name\": \"Dwarfs v Greenskins\", \"owner\": \"Destruction\", \"pairing\": 1}, {\"name\": \"High Elves v Dark Elves\", \"owner\": \"Destruction\", \"pairing\": 3}]}","created_at":"2020-07-29 19:00:37","accessed":null}]
+        data.forEach((city) => {
+            const cityName = city["name"];
+            if(!this.lastState.hasOwnProperty(cityName)
+                || (this.lastState[cityName] + minPauseBetweenAttacks < new Date().getTime())) {
+
+                const defender = city["owner"];
+                const attacker = (defender==="Order")?"Destruction":"Order";
+
+                const color = (defender==="Order")?"#ff0000":"#0000ff";
+
+                const instances = city["instances"];
+                const rank = city["rank"];
+                const orderWins = city["owins"];
+                const destroWins = city["dwins"];
+
+                const embed = new MessageBuilder()
+                    .setText(attacker + " is attacking " + cityName + "(Rank " + rank + ")")
+                    .setTitle(attacker + " is attacking " + cityName + "(Rank " + rank + ")")
+                    .addField('Instances', 'Total: ' + instances + '; Order wins: ' + orderWins
+                                + "; Destruction wins: " + destroWins)
+                    .setColor(color)
+                    .setThumbnail(IMAGE_URL)
+                    .setFooter('Created by Kalell with the help of Ruke\'s sor_online')
+                    .setImage(IMAGE_URL)
+                    .setTimestamp();
+
+                this.sendDiscordNotification(embed);
+            }
+            this.lastState[cityName] = new Date().getTime();
+        });
+    }
+
+    this.parseForts = function (data) {
+/*[{"id":"1","data":"{\"forts\": [{\"name\": \"Shining Way\", \"pop1\": \"241\", \"pop2\": \"180\", \"owner\": \"Order\", \"stage\": \"2\", \"health\": \"51\"}], \"keeps\": [{\"aao\": \"400\", \"bos\": [\"Neutral\", \"Neutral\", \"Order\", \"Neutral\"], \"name\": \"Reikland\", \"pop1\": \"25\", \"pop2\": \"5\", \"tier\": 4, \"keep1\": {\"obj\": \"Safe\", \"rank\": \"1\", \"owner\": \"Destruction\", \"rankup\": \"51\", \"status\": \"Safe\"}, \"keep2\": {\"obj\": \"Safe\", \"rank\": \"3\", \"owner\": \"Order\", \"rankup\": \"0\", \"status\": \"Safe\"}, \"aaoOwner\": \"Destruction\"}], \"zonelocks\": [{\"name\": \"Dwarfs v Greenskins\", \"owner\": \"Destruction\", \"pairing\": 1}]}","created_at":"2020-07-29 18:13:06","accessed":null}]
+*/
+        data.forEach((fort) => {
+            const fortName = fort["name"];
+            if(!this.lastState.hasOwnProperty(fortName)
+                ||this.lastState[fortName] + minPauseBetweenAttacks < new Date().getTime()) {
+
+                const defender = fort["owner"];
+                const attacker = (defender==="Order")?"Destruction":"Order";
+
+                const orderPop = (attacker === "Order"?fort["pop1"]:fort["pop2"]);
+                const destroPop = (attacker === "Order"?fort["pop2"]:fort["pop1"]);
+
+                const color = (defender==="Order")?"#ff0000":"#0000ff";
+
+                const embed = new MessageBuilder()
+                    .setTitle(attacker + " is attacking " + fortName)
+                    .setText(attacker + " is attacking " + fortName)
+                    .addField('Players', 'Order: ' + orderPop + "; Destruction: " + destroPop)
+                    .setColor(color)
+                    .setThumbnail(IMAGE_URL)
+                    .setFooter('Created by Kalell with the help of Ruke\'s sor_online')
+                    .setImage(IMAGE_URL)
+                    .setTimestamp();
+
+                    this.sendDiscordNotification(embed);
+            }
+        });
+    }
+
+    this.parseKeeps = function(data) {
         data.forEach((region) => {
             this.parseRegion(region)
         })

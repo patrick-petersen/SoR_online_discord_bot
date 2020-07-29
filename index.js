@@ -1,6 +1,8 @@
 const https = require('https');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const exitHook = require('exit-hook');
+const fs = require("fs");
+
 
 function Notifier() {
 
@@ -115,6 +117,14 @@ function Notifier() {
     this.makeApiCallWithCallback = function() {
         const callback = (response) => {
             const json = JSON.parse(response);
+            fs.appendFile("log.txt", response+"\n", (err) => {
+                if (err) {
+                    console.log(err);
+                }
+                else {
+                }
+            });
+
             const data = json[0].data;
             const dataJson = JSON.parse(data);
             if(dataJson.hasOwnProperty("keeps"))

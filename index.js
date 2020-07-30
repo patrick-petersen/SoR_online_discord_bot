@@ -2,11 +2,11 @@ const https = require('https');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const exitHook = require('exit-hook');
 const fs = require("fs");
-
+require("tls").DEFAULT_ECDH_CURVE = "auto";
 
 function Notifier() {
 
-    const enableLogFile = false;
+    const enableLogFile = true;
 
     //Notification settings
     const minPauseBetweenAttacks = 1000 * 60 * 30; //If there is a break between attacks it counts as new
@@ -184,6 +184,7 @@ function Notifier() {
 
         const options = {
             hostname: 'www.soronline.us',
+            protocol: "https:",
             port: 443,
             path: '/api/get.php',
             method: 'POST',

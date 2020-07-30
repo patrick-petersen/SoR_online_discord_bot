@@ -6,6 +6,8 @@ const fs = require("fs");
 
 function Notifier() {
 
+    const enableLogFile = false;
+
     //Notification settings
     const minPauseBetweenAttacks = 1000 * 60 * 30; //If there is a break between attacks it counts as new
     const startTime = new Date().getTime();
@@ -17,7 +19,7 @@ function Notifier() {
     const VZ_test = new Webhook("DiscordWebbhook1");
     const VZ_offi  = new Webhook("DiscordWebbhook2");
 
-/*
+
     const webhooks = {
         "all": [VZ_test, VZ_offi],
         "debug": [VZ_test],
@@ -31,7 +33,7 @@ function Notifier() {
 
     }
 
- */
+ /*
 
 
     const webhooks = {
@@ -45,7 +47,7 @@ function Notifier() {
         "fort": [VZ_test],
         "city": [VZ_test],
     }
-
+*/
 
     const preFortKeeps = {
         "Kadrin Valley": "Order",
@@ -144,13 +146,15 @@ function Notifier() {
     this.makeApiCallWithCallback = function() {
         const callback = (response) => {
             const json = JSON.parse(response);
-            fs.appendFile("log.txt", response+"\n", (err) => {
-                if (err) {
-                    console.log(err);
-                }
-                else {
-                }
-            });
+            if(enableLogFile) {
+                fs.appendFile("log.txt", response+"\n", (err) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    else {
+                    }
+                });
+            }
 
             const data = json[0].data;
             const dataJson = JSON.parse(data);

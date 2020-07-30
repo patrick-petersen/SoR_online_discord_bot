@@ -8,6 +8,9 @@ function Notifier() {
 
     //Notification settings
     const minPauseBetweenAttacks = 1000 * 60 * 30; //If there is a break between attacks it counts as new
+    const startTime = new Date().getTime();
+    const shouldSendStartupNotifications = false;
+    const timeTilFirstNotification = 1000 * 60 * 2;
 
     //Discord settings
     const IMAGE_URL = 'https://www.soronline.us/logo.ico';
@@ -76,6 +79,11 @@ function Notifier() {
 
     this.shouldNotify = function(region, faction) {
         console.log(this.lastState);
+
+        if(!shouldSendStartupNotifications
+            && (startTime + timeTilFirstNotification > new Date().getTime())) {
+            return false;
+        }
 
         if(this.lastState.hasOwnProperty(region)) {
             const regionObj = this.lastState[region];

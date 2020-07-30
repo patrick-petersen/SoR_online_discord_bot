@@ -47,10 +47,7 @@ function Notifier() {
             .setImage(IMAGE_URL)
             .setTimestamp();
 
-        for (let index in debugWebhooks) {
-            const webhook = webhooks[index];
-            webhook.send(embed);
-        }
+        this.sendDiscordDebugNotification(embed);
     }
 
     this.init = function () {
@@ -68,7 +65,7 @@ function Notifier() {
         const shutdownCallback = () => {
             console.log("shutting down!");
             //this does not send the message to the discord hook!
-            //this.sendDiscordNotification("Shutting down!");
+            //this.sendPublicDiscordNotification("Shutting down!");
         }
 
         exitHook(shutdownCallback.bind(this));
@@ -135,8 +132,16 @@ function Notifier() {
 
             if(dataJson.hasOwnProperty("cities"))
                 this.parseCity(dataJson["cities"]);
+
+            if(dataJson.hasOwnProperty("servmsg"))
+                this.parseServerMsg(dataJson["servmsg"]);
         };
         this.makeApiCall(callback);
+    }
+
+    this.parseServerMsg = function(data) {
+        //[{"id":"1","data":"{\"servmsg\": \"No data updates, RoR server may be down\"}","created_at":"2020-07-30 05:48:21","accessed":null}]
+        this.sendDiscordDebugNotification(JSON.stringify(data));
     }
 
     this.makeApiCall = function(callback) {
@@ -199,13 +204,14 @@ function Notifier() {
                     .setTitle(attacker + " is attacking " + cityName + "(Rank " + rank + ")")
                     .addField('Instances', 'Total: ' + instances + '; Order wins: ' + orderWins
                                 + "; Destruction wins: " + destroWins)
+                    .addField('Details', "Source and more details at [sor_online](https://soronline.us)")
                     .setColor(color)
                     .setThumbnail(IMAGE_URL)
-                    .setFooter('Created by Kalell with the help of Ruke\'s sor_online')
+                    .setFooter('Created by Kalell with the help of Ruke')
                     .setImage(IMAGE_URL)
                     .setTimestamp();
 
-                this.sendDiscordNotification(embed);
+                this.sendPublicDiscordNotification(embed);
             }
             this.lastState[cityName] = new Date().getTime();
         });
@@ -231,13 +237,14 @@ function Notifier() {
                     .setTitle(attacker + " is attacking " + fortName)
                     .setText(attacker + " is attacking " + fortName)
                     .addField('Players', 'Order: ' + orderPop + "; Destruction: " + destroPop)
+                    .addField('Details', "Source and more details at [sor_online](https://soronline.us)")
                     .setColor(color)
                     .setThumbnail(IMAGE_URL)
-                    .setFooter('Created by Kalell with the help of Ruke\'s sor_online')
+                    .setFooter('Created by Kalell with the help of Ruke')
                     .setImage(IMAGE_URL)
                     .setTimestamp();
 
-                    this.sendDiscordNotification(embed);
+                    this.sendPublicDiscordNotification(embed);
             }
             this.lastState[fortName] = new Date().getTime();
         });
@@ -302,30 +309,39 @@ function Notifier() {
                     + "; Destruction: " + (":star:".repeat(destroKeep["rank"])))
                 .addField('AAO', aao + '% for: ' + aaoOwner)
                 .addField('BOs', 'Order: ' + orderBOs + "; Destruction: " + destroBOs)
+                .addField('Details', "Source and more details at [sor_online](https://soronline.us)")
                 .setColor(color)
                 .setThumbnail(IMAGE_URL)
-                .setFooter('Created by Kalell with the help of Ruke\'s sor_online')
+                .setFooter('Created by Kalell with the help of Ruke')
                 .setImage(IMAGE_URL)
                 .setTimestamp();
 
             if(this.isPreFortKeep(region.name, keep["owner"])) {
                 const text = "PRE FORT " + keep["owner"] + " keep under attack in " + region.name + "\n@here";
                 embed.setText(text);
-                this.sendDiscordNotification(embed);
+                this.sendPublicDiscordNotification(embed);
             }
             else {
                 const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name;
                 embed.setText(text);
-                this.sendDiscordNotification(embed);
+                this.sendPublicDiscordNotification(embed);
             }
         }
     }
 
-    this.sendDiscordNotification = function (notification) {
+    this.sendPublicDiscordNotification = function (notification) {
+        this.sendDiscordNotification(notification, webhooks);
+    }
+
+    this.sendDiscordDebugNotification = function (notification) {
+        this.sendDiscordNotification(notification, debugWebhooks);
+    }
+
+    this.sendDiscordNotification = function (notification, discordWebhooks) {
         console.log(notification);
 
-        for (let index in webhooks) {
-            const webhook = webhooks[index];
+        for (let index in discordWebhooks) {
+            const webhook = discordWebhooks[index];
             webhook.send(notification);
         }
     }

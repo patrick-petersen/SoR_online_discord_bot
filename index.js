@@ -17,7 +17,7 @@ function Notifier() {
     const VZ_test = new Webhook("DiscordWebbhook1");
     const VZ_offi  = new Webhook("DiscordWebbhook2");
 
-    /*
+
     const webhooks = {
         "all": [VZ_test, VZ_offi],
         "debug": [VZ_test],
@@ -30,7 +30,7 @@ function Notifier() {
         "city": [VZ_test, VZ_offi],
 
     }
-    */
+    /*
 
     const webhooks = {
         "all": [VZ_test],
@@ -42,8 +42,8 @@ function Notifier() {
         "pre_fort": [VZ_test],
         "fort": [VZ_test],
         "city": [VZ_test],
-
     }
+    */
 
     const preFortKeeps = {
         "Kadrin Valley": "Order",
@@ -230,7 +230,7 @@ function Notifier() {
                     .setTitle(attacker + " is attacking " + cityName + "(Rank " + rank + ")")
                     .addField('Instances', 'Total: ' + instances + '; Order wins: ' + orderWins
                                 + "; Destruction wins: " + destroWins)
-                    .addField('Details', "Source and more details at [sor_online](https://soronline.us)")
+                    .addField('Details', "For more details visit [sor_online](https://soronline.us)")
                     .setColor(color)
                     .setThumbnail(IMAGE_URL)
                     .setFooter('Created by Kalell with the help of Ruke')
@@ -261,7 +261,7 @@ function Notifier() {
                     .setTitle(attacker + " is attacking " + fortName)
                     .setText(attacker + " is attacking " + fortName)
                     .addField('Players', 'Order: ' + orderPop + "; Destruction: " + destroPop)
-                    .addField('Details', "Source and more details at [sor_online](https://soronline.us)")
+                    .addField('Details', "For more details visit [sor_online](https://soronline.us)")
                     .setColor(color)
                     .setThumbnail(IMAGE_URL)
                     .setFooter('Created by Kalell with the help of Ruke')
@@ -333,7 +333,7 @@ function Notifier() {
                     + "; Destruction: " + (":star:".repeat(destroKeep["rank"])))
                 .addField('AAO', aao + '% for: ' + aaoOwner)
                 .addField('BOs', 'Order: ' + orderBOs + "; Destruction: " + destroBOs)
-                .addField('Details', "Source and more details at [sor_online](https://soronline.us)")
+                .addField('Details', "For more details visit [sor_online](https://soronline.us)")
                 .setColor(color)
                 .setThumbnail(IMAGE_URL)
                 .setFooter('Created by Kalell with the help of Ruke')

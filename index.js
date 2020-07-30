@@ -17,7 +17,7 @@ function Notifier() {
     const VZ_test = new Webhook("DiscordWebbhook1");
     const VZ_offi  = new Webhook("DiscordWebbhook2");
 
-
+/*
     const webhooks = {
         "all": [VZ_test, VZ_offi],
         "debug": [VZ_test],
@@ -30,7 +30,9 @@ function Notifier() {
         "city": [VZ_test, VZ_offi],
 
     }
-    /*
+
+ */
+
 
     const webhooks = {
         "all": [VZ_test],
@@ -43,7 +45,7 @@ function Notifier() {
         "fort": [VZ_test],
         "city": [VZ_test],
     }
-    */
+
 
     const preFortKeeps = {
         "Kadrin Valley": "Order",
@@ -354,13 +356,24 @@ function Notifier() {
     }
 
     this.sendDiscordNotification = function (notification, ...categories) {
+        console.log(categories);
         //all parameters after the first are categories (strings)
         const discordWebhooks = categories.map(category => {
+            console.log(category, webhooks.hasOwnProperty(category), webhooks[category]);
             return (webhooks.hasOwnProperty(category)?webhooks[category]:[])
         }).reduce((list, curr) => {
-            if(list.indexOf(curr) === -1) {
-                return list.push(curr);
-            }
+            console.log(list);
+            curr.forEach((oneWebhook) => {
+                if(list.indexOf(oneWebhook) === -1) {
+                    console.log("-1", oneWebhook);
+                    list.push(oneWebhook);
+                }
+                else {
+                    console.log("skipping", oneWebhook);
+                }
+            });
+
+            return list;
         }, []);
 
         this._sendDiscordNotification(notification, discordWebhooks);
@@ -371,7 +384,7 @@ function Notifier() {
     }
 
     this._sendDiscordNotification = function (notification, discordWebhooks) {
-        console.log(notification);
+        console.log(notification, discordWebhooks);
 
         for (let index in discordWebhooks) {
             const webhook = discordWebhooks[index];

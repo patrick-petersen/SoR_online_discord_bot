@@ -88,7 +88,7 @@ function Notifier() {
         const shutdownCallback = () => {
             console.log("shutting down!");
             //this does not send the message to the discord hook!
-            //this.sendPublicDiscordNotification("Shutting down!");
+            //this.sendDiscordDebugNotification("Shutting down!");
         }
 
         exitHook(shutdownCallback.bind(this));
@@ -268,7 +268,7 @@ function Notifier() {
                     .setImage(IMAGE_URL)
                     .setTimestamp();
 
-                    this.sendPublicDiscordNotification(embed);
+                    this.sendDiscordNotification(embed, "fort");
             }
             this.setAttacked(fortName, defender);
         });
@@ -343,19 +343,18 @@ function Notifier() {
             if(this.isPreFortKeep(region.name, keep["owner"])) {
                 const text = "PRE FORT " + keep["owner"] + " keep under attack in " + region.name + "\n@here";
                 embed.setText(text);
-                this.sendPublicDiscordNotification(embed);
+                this.sendDiscordNotification(embed, "pre_fort", ""+tier);
             }
             else {
                 const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name;
                 embed.setText(text);
-                this.sendPublicDiscordNotification(embed);
+                this.sendDiscordNotification(embed, ""+tier);
             }
         }
     }
 
-    this.sendDiscordNotification = function (notification) {
+    this.sendDiscordNotification = function (notification, ...categories) {
         //all parameters after the first are categories (strings)
-        const categories = Array.prototype.slice.call(arguments, 1);
         const discordWebhooks = categories.map(category => {
             return (webhooks.hasOwnProperty(category)?webhooks[category]:[])
         }).reduce((list, curr) => {

@@ -239,6 +239,7 @@ function Notifier() {
 
                     this.sendDiscordNotification(embed);
             }
+            this.lastState[fortName] = new Date().getTime();
         });
     }
 

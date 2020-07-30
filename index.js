@@ -14,16 +14,36 @@ function Notifier() {
 
     //Discord settings
     const IMAGE_URL = 'https://www.soronline.us/logo.ico';
-    const webhooks = [
-        //VZ zum testen
-        new Webhook("DiscordWebbhook1"),
-        //Offizieller VZ discord
-        //new Webhook("DiscordWebbhook2"),
-    ];
+    const VZ_test = new Webhook("DiscordWebbhook1");
+    const VZ_offi  = new Webhook("DiscordWebbhook2");
 
-    const debugWebhooks = [
-        webhooks[0],
-    ];
+    /*
+    const webhooks = {
+        "all": [VZ_test, VZ_offi],
+        "debug": [VZ_test],
+        "1": [VZ_test],
+        "2": [VZ_test],
+        "3": [VZ_test],
+        "4": [VZ_test],
+        "pre_fort": [VZ_test, VZ_offi],
+        "fort": [VZ_test, VZ_offi],
+        "city": [VZ_test, VZ_offi],
+
+    }
+    */
+
+    const webhooks = {
+        "all": [VZ_test],
+        "debug": [VZ_test],
+        "1": [VZ_test],
+        "2": [VZ_test],
+        "3": [VZ_test],
+        "4": [VZ_test],
+        "pre_fort": [VZ_test],
+        "fort": [VZ_test],
+        "city": [VZ_test],
+
+    }
 
     const preFortKeeps = {
         "Kadrin Valley": "Order",
@@ -56,8 +76,8 @@ function Notifier() {
     this.init = function () {
         const timeout = 1000 * 60; //timeout in milliseconds
 
-        for (let index in webhooks) {
-            const webhook = webhooks[index];
+        for (let index in webhooks["all"]) {
+            const webhook = webhooks["all"][index];
             webhook.setUsername('SoR online discord bot');
             webhook.setAvatar(IMAGE_URL);
             //webhook.send("Bot is online!");
@@ -194,12 +214,10 @@ function Notifier() {
         // \"cities\": [{\"name\": \"Altdorf\", \"rank\": \"3\", \"time\": \"138\", \"dwins\": \"0\", \"owins\": \"0\", \"owner\": \"Order\", \"instances\": \"25\"}], \"zonelocks\": [{\"name\": \"Dwarfs v Greenskins\", \"owner\": \"Destruction\", \"pairing\": 1}, {\"name\": \"High Elves v Dark Elves\", \"owner\": \"Destruction\", \"pairing\": 3}]}","created_at":"2020-07-29 19:00:37","accessed":null}]
         data.forEach((city) => {
             const cityName = city["name"];
-            if(!this.lastState.hasOwnProperty(cityName)
-                || (this.lastState[cityName] + minPauseBetweenAttacks < new Date().getTime())) {
+            const defender = city["owner"];
+            const attacker = (defender==="Order")?"Destruction":"Order";
 
-                const defender = city["owner"];
-                const attacker = (defender==="Order")?"Destruction":"Order";
-
+            if(this.shouldNotify(cityName, defender)) {
                 const color = (defender==="Order")?"#ff0000":"#0000ff";
 
                 const instances = city["instances"];
@@ -219,9 +237,9 @@ function Notifier() {
                     .setImage(IMAGE_URL)
                     .setTimestamp();
 
-                this.sendPublicDiscordNotification(embed);
+                this.sendDiscordNotification(embed, "city");
             }
-            this.lastState[cityName] = new Date().getTime();
+            this.setAttacked(cityName, defender);
         });
     }
 
@@ -230,12 +248,10 @@ function Notifier() {
 */
         data.forEach((fort) => {
             const fortName = fort["name"];
-            if(!this.lastState.hasOwnProperty(fortName)
-                ||this.lastState[fortName] + minPauseBetweenAttacks < new Date().getTime()) {
+            const defender = fort["owner"];
+            const attacker = (defender==="Order")?"Destruction":"Order";
 
-                const defender = fort["owner"];
-                const attacker = (defender==="Order")?"Destruction":"Order";
-
+            if(this.shouldNotify(fortName, defender)) {
                 const orderPop = (attacker === "Order"?fort["pop1"]:fort["pop2"]);
                 const destroPop = (attacker === "Order"?fort["pop2"]:fort["pop1"]);
 
@@ -254,7 +270,7 @@ function Notifier() {
 
                     this.sendPublicDiscordNotification(embed);
             }
-            this.lastState[fortName] = new Date().getTime();
+            this.setAttacked(fortName, defender);
         });
     }
 
@@ -337,15 +353,25 @@ function Notifier() {
         }
     }
 
-    this.sendPublicDiscordNotification = function (notification) {
-        this.sendDiscordNotification(notification, webhooks);
+    this.sendDiscordNotification = function (notification) {
+        //all parameters after the first are categories (strings)
+        const categories = Array.prototype.slice.call(arguments, 1);
+        const discordWebhooks = categories.map(category => {
+            return (webhooks.hasOwnProperty(category)?webhooks[category]:[])
+        }).reduce((list, curr) => {
+            if(list.indexOf(curr) === -1) {
+                return list.push(curr);
+            }
+        }, []);
+
+        this._sendDiscordNotification(notification, discordWebhooks);
     }
 
     this.sendDiscordDebugNotification = function (notification) {
-        this.sendDiscordNotification(notification, debugWebhooks);
+        this.sendDiscordNotification(notification, "debug");
     }
 
-    this.sendDiscordNotification = function (notification, discordWebhooks) {
+    this._sendDiscordNotification = function (notification, discordWebhooks) {
         console.log(notification);
 
         for (let index in discordWebhooks) {

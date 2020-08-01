@@ -41,7 +41,7 @@ const config = {
 };
 
 //debug overwrite
-
+/*
 config.webhooks = {
     "all": [VZ_test],
         "debug": [VZ_test],
@@ -52,6 +52,6 @@ config.webhooks = {
         "pre_fort": [VZ_test],
         "fort": [VZ_test],
         "city": [VZ_test],
-};
+};*/
 
 module.exports = config;

@@ -123,7 +123,10 @@ function Notifier() {
 
     this.parseServerMsg = function(data) {
         //[{"id":"1","data":"{\"servmsg\": \"No data updates, RoR server may be down\"}","created_at":"2020-07-30 05:48:21","accessed":null}]
-        this.sendDiscordDebugNotification(JSON.stringify(data));
+        if(this.shouldNotify("servmsg", data)) {
+            this.sendDiscordDebugNotification(JSON.stringify(data));
+        }
+        this.setAttacked("servmsg", data);
     }
 
     this.makeApiCall = function(callback) {

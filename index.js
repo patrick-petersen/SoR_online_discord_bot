@@ -2,63 +2,12 @@ const https = require('https');
 const { Webhook, MessageBuilder } = require('discord-webhook-node');
 const exitHook = require('exit-hook');
 const fs = require("fs");
+const config = require("./config.js");
+
 require("tls").DEFAULT_ECDH_CURVE = "auto";
 
+
 function Notifier() {
-
-    const enableLogFile = true;
-
-    //Notification settings
-    const minPauseBetweenAttacks = 1000 * 60 * 30; //If there is a break between attacks it counts as new
-    const startTime = new Date().getTime();
-    const shouldSendStartupNotifications = false;
-    const timeTilFirstNotification = 1000 * 60 * 2;
-
-    //Discord settings
-    const IMAGE_URL = 'https://www.soronline.us/logo.ico';
-    const VZ_test = new Webhook("DiscordWebbhook1");
-    const VZ_offi  = new Webhook("DiscordWebbhook2");
-
-
-    const webhooks = {
-        "all": [VZ_test, VZ_offi],
-        "debug": [VZ_test],
-        "1": [VZ_test],
-        "2": [VZ_test],
-        "3": [VZ_test],
-        "4": [VZ_test],
-        "pre_fort": [VZ_test, VZ_offi],
-        "fort": [VZ_test, VZ_offi],
-        "city": [VZ_test, VZ_offi],
-
-    }
-
- /*
-
-
-    const webhooks = {
-        "all": [VZ_test],
-        "debug": [VZ_test],
-        "1": [VZ_test],
-        "2": [VZ_test],
-        "3": [VZ_test],
-        "4": [VZ_test],
-        "pre_fort": [VZ_test],
-        "fort": [VZ_test],
-        "city": [VZ_test],
-    }
-*/
-
-    const preFortKeeps = {
-        "Kadrin Valley": "Order",
-        "Black Crag": "Destro",
-        "Chaos Wastes": "Destro",
-        "Reikland": "Order",
-        "Caledor": "Destro",
-        "Eataine": "Order"
-    };
-
-    //internal
     this.lastState = {};
 
     this.sendStartupMessage = function () {
@@ -69,21 +18,20 @@ function Notifier() {
             .setURL('https://www.soronline.us/')
             .addField('Functions', 'Sending out notifications if keeps, forts or cities are getting attacked')
             .setColor('#00b0f4')
-            .setThumbnail(IMAGE_URL)
+            .setThumbnail(config.IMAGE_URL)
             .setDescription('Created by Kalell with the help of Ruke\'s [sor_online](https://soronline.us)')
-            .setImage(IMAGE_URL)
+            .setImage(config.IMAGE_URL)
             .setTimestamp();
 
         this.sendDiscordDebugNotification(embed);
     }
 
     this.init = function () {
-        const timeout = 1000 * 60; //timeout in milliseconds
 
-        for (let index in webhooks["all"]) {
-            const webhook = webhooks["all"][index];
+        for (let index in config.webhooks["all"]) {
+            const webhook = config.webhooks["all"][index];
             webhook.setUsername('SoR online discord bot');
-            webhook.setAvatar(IMAGE_URL);
+            webhook.setAvatar(config.IMAGE_URL);
             //webhook.send("Bot is online!");
         }
 
@@ -97,15 +45,15 @@ function Notifier() {
 
         exitHook(shutdownCallback.bind(this));
 
-        setInterval(this.makeApiCallWithCallback.bind(this), timeout);
+        setInterval(this.makeApiCallWithCallback.bind(this), config.timeout);
         this.makeApiCallWithCallback.bind(this)();
     }
 
     this.shouldNotify = function(region, faction) {
         console.log(this.lastState);
 
-        if(!shouldSendStartupNotifications
-            && (startTime + timeTilFirstNotification > new Date().getTime())) {
+        if(!config.shouldSendStartupNotifications
+            && (config.startTime + config.timeTilFirstNotification > new Date().getTime())) {
             return false;
         }
 
@@ -115,7 +63,7 @@ function Notifier() {
             if(regionObj.hasOwnProperty(faction)) {
                 const keep = regionObj[faction];
                 console.log(keep);
-                return (keep["lastAttack"] + minPauseBetweenAttacks < new Date().getTime());
+                return (keep["lastAttack"] + config.minPauseBetweenAttacks < new Date().getTime());
             }
             else {
                 return true;
@@ -127,7 +75,7 @@ function Notifier() {
     }
 
     this.isPreFortKeep = function(region, faction) {
-        return (preFortKeeps.hasOwnProperty(region) && preFortKeeps[region] === faction)
+        return (config.preFortKeeps.hasOwnProperty(region) && config.preFortKeeps[region] === faction)
     }
 
     this.setAttacked = function(region, faction) {
@@ -146,7 +94,7 @@ function Notifier() {
     this.makeApiCallWithCallback = function() {
         const callback = (response) => {
             const json = JSON.parse(response);
-            if(enableLogFile) {
+            if(config.enableLogFile) {
                 fs.appendFile("log.txt", response+"\n", (err) => {
                     if (err) {
                         console.log(err);
@@ -239,9 +187,9 @@ function Notifier() {
                                 + "; Destruction wins: " + destroWins)
                     .addField('Details', "For more details visit [sor_online](https://soronline.us)")
                     .setColor(color)
-                    .setThumbnail(IMAGE_URL)
+                    .setThumbnail(config.IMAGE_URL)
                     .setFooter('Created by Kalell with the help of Ruke')
-                    .setImage(IMAGE_URL)
+                    .setImage(config.IMAGE_URL)
                     .setTimestamp();
 
                 this.sendDiscordNotification(embed, "city");
@@ -270,9 +218,9 @@ function Notifier() {
                     .addField('Players', 'Order: ' + orderPop + "; Destruction: " + destroPop)
                     .addField('Details', "For more details visit [sor_online](https://soronline.us)")
                     .setColor(color)
-                    .setThumbnail(IMAGE_URL)
+                    .setThumbnail(config.IMAGE_URL)
                     .setFooter('Created by Kalell with the help of Ruke')
-                    .setImage(IMAGE_URL)
+                    .setImage(config.IMAGE_URL)
                     .setTimestamp();
 
                     this.sendDiscordNotification(embed, "fort");
@@ -342,9 +290,9 @@ function Notifier() {
                 .addField('BOs', 'Order: ' + orderBOs + "; Destruction: " + destroBOs)
                 .addField('Details', "For more details visit [sor_online](https://soronline.us)")
                 .setColor(color)
-                .setThumbnail(IMAGE_URL)
+                .setThumbnail(config.IMAGE_URL)
                 .setFooter('Created by Kalell with the help of Ruke')
-                .setImage(IMAGE_URL)
+                .setImage(config.IMAGE_URL)
                 .setTimestamp();
 
             if(this.isPreFortKeep(region.name, keep["owner"])) {
@@ -364,8 +312,8 @@ function Notifier() {
         console.log(categories);
         //all parameters after the first are categories (strings)
         const discordWebhooks = categories.map(category => {
-            console.log(category, webhooks.hasOwnProperty(category), webhooks[category]);
-            return (webhooks.hasOwnProperty(category)?webhooks[category]:[])
+            console.log(category, config.webhooks.hasOwnProperty(category), config.webhooks[category]);
+            return (config.webhooks.hasOwnProperty(category)?config.webhooks[category]:[])
         }).reduce((list, curr) => {
             console.log(list);
             curr.forEach((oneWebhook) => {

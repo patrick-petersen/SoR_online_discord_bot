@@ -1,9 +1,6 @@
-const config = require("./config.js");
-const Discord_Notifier = require("./Discord_Notifier");
+const Discord_Config = require("./Discord_Config.js");
+const SoR_Config = require("./Discord_Config.js");
 const SoR_Notifier = require("./SoR_Notifier");
 
-
-const discord_Notifier = new Discord_Notifier(config);
-
-const sor_Notifier = new SoR_Notifier(config, discord_Notifier);
+const sor_Notifier = new SoR_Notifier(SoR_Config);
 sor_Notifier.init();

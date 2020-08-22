@@ -2,12 +2,13 @@ const https = require('https');
 const { MessageBuilder } = require('discord-webhook-node');
 const exitHook = require('exit-hook');
 const fs = require("fs");
+const Discord_Notifier = require("./Discord_Notifier");
 
 require("tls").DEFAULT_ECDH_CURVE = "auto";
 
-
-function SoR_Notifier(config, discord_Notifier) {
+function SoR_Notifier(config) {
     this.lastState = {};
+    this.discord_Notifier = new Discord_Notifier(config);
 
     this.sendStartupMessage = function () {
         const embed = new MessageBuilder()
@@ -22,7 +23,7 @@ function SoR_Notifier(config, discord_Notifier) {
             .setImage(config.IMAGE_URL)
             .setTimestamp();
 
-        discord_Notifier.sendDiscordDebugNotification(embed);
+        this.discord_Notifier.sendDiscordDebugNotification(embed);
     }
 
     this.init = function () {
@@ -125,7 +126,7 @@ function SoR_Notifier(config, discord_Notifier) {
     this.parseServerMsg = function(data) {
         //[{"id":"1","data":"{\"servmsg\": \"No data updates, RoR server may be down\"}","created_at":"2020-07-30 05:48:21","accessed":null}]
         if(this.shouldNotify("servmsg", data)) {
-            discord_Notifier.sendDiscordDebugNotification(JSON.stringify(data));
+            this.discord_Notifier.sendDiscordDebugNotification(JSON.stringify(data));
         }
         this.setAttacked("servmsg", data);
     }
@@ -196,7 +197,7 @@ function SoR_Notifier(config, discord_Notifier) {
                     .setImage(config.IMAGE_URL)
                     .setTimestamp();
 
-                discord_Notifier.sendDiscordNotification(embed, "city");
+                this.discord_Notifier.sendDiscordNotification(embed, "city");
             }
             this.setAttacked(cityName, defender);
         });
@@ -227,7 +228,7 @@ function SoR_Notifier(config, discord_Notifier) {
                     .setImage(config.IMAGE_URL)
                     .setTimestamp();
 
-                discord_Notifier.sendDiscordNotification(embed, "fort");
+                this.discord_Notifier.sendDiscordNotification(embed, "fort");
             }
             this.setAttacked(fortName, defender);
         });
@@ -302,12 +303,12 @@ function SoR_Notifier(config, discord_Notifier) {
             if(this.isPreFortKeep(region.name, keep["owner"])) {
                 const text = "PRE FORT " + keep["owner"] + " keep under attack in " + region.name + "\n@here";
                 embed.setText(text);
-                discord_Notifier.sendDiscordNotification(embed, "pre_fort", ""+tier);
+                this.discord_Notifier.sendDiscordNotification(embed, "pre_fort", ""+tier);
             }
             else {
                 const text = "Tier " +region["tier"] +" " + keep["owner"] + " keep under attack in " + region.name;
                 embed.setText(text);
-                discord_Notifier.sendDiscordNotification(embed, ""+tier);
+                this.discord_Notifier.sendDiscordNotification(embed, ""+tier);
             }
         }
     }

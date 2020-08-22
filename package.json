@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "discord-webhook-node": "^1.1.8",
-    "exit-hook": "^2.2.0"
+    "exit-hook": "^2.2.0",
+    "is-port-reachable": "^3.0.0"
   }
 }

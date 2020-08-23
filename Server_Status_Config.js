@@ -1,4 +1,4 @@
-const {VZ_test, VZ_offi} = require("./Discord_Config");
+const {VZ_test_online} = require("./Discord_Config");
 
 const Server_Status_Config = {
     IMAGE_URL: 'https://www.soronline.us/logo.ico',
@@ -11,8 +11,8 @@ const Server_Status_Config = {
     },
 
     webhooks: {
-        "all": [VZ_test],
-        "status_change": [VZ_test],
+        "all": [VZ_test_online],
+        "status_change": [VZ_test_online],
     }
 };
 

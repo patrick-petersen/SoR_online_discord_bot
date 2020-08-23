@@ -1,4 +1,4 @@
-const {VZ_test, VZ_offi} = require("./Discord_Config");
+const {VZ_test_SoR, VZ_offi_SoR} = require("./Discord_Config");
 
 
 const SoR_Config = {
@@ -23,29 +23,29 @@ const SoR_Config = {
     },
 
     webhooks: {
-        "all": [VZ_test, VZ_offi],
-        "debug": [VZ_test],
-        "1": [VZ_test],
-        "2": [VZ_test],
-        "3": [VZ_test],
-        "4": [VZ_test],
-        "pre_fort": [VZ_test, VZ_offi],
-        "fort": [VZ_test, VZ_offi],
-        "city": [VZ_test, VZ_offi],
+        "all": [VZ_test_SoR, VZ_offi_SoR],
+        "debug": [VZ_test_SoR],
+        "1": [VZ_test_SoR],
+        "2": [VZ_test_SoR],
+        "3": [VZ_test_SoR],
+        "4": [VZ_test_SoR],
+        "pre_fort": [VZ_test_SoR, VZ_offi_SoR],
+        "fort": [VZ_test_SoR, VZ_offi_SoR],
+        "city": [VZ_test_SoR, VZ_offi_SoR],
     },
 }
 
 //debug overwrite
 SoR_Config.webhooks = {
-    "all": [VZ_test],
-    "debug": [VZ_test],
-    "1": [VZ_test],
-    "2": [VZ_test],
-    "3": [VZ_test],
-    "4": [VZ_test],
-    "pre_fort": [VZ_test],
-    "fort": [VZ_test],
-    "city": [VZ_test],
+    "all": [VZ_test_SoR],
+    "debug": [VZ_test_SoR],
+    "1": [VZ_test_SoR],
+    "2": [VZ_test_SoR],
+    "3": [VZ_test_SoR],
+    "4": [VZ_test_SoR],
+    "pre_fort": [VZ_test_SoR],
+    "fort": [VZ_test_SoR],
+    "city": [VZ_test_SoR],
 };
 
 module.exports = SoR_Config;

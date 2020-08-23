@@ -44,7 +44,7 @@ function Server_Status(config) {
         //to not notify on the first call
         if(this.firstCall) {
             this.firstCall = false;
-            return true;
+            return false;
         }
 
         return this.lastStateOnline !== online;

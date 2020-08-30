@@ -108,17 +108,17 @@ function SoR_Notifier(config) {
 
             const data = json[0].data;
             const dataJson = JSON.parse(data);
-            if(dataJson.hasOwnProperty("keeps"))
+            if(dataJson.hasOwnProperty("keeps"), dataJson)
                 this.parseKeeps(dataJson["keeps"]);
 
             if(dataJson.hasOwnProperty("forts"))
-                this.parseForts(dataJson["forts"]);
+                this.parseForts(dataJson["forts"], dataJson);
 
             if(dataJson.hasOwnProperty("cities"))
-                this.parseCity(dataJson["cities"]);
+                this.parseCity(dataJson["cities"], dataJson);
 
             if(dataJson.hasOwnProperty("servmsg"))
-                this.parseServerMsg(dataJson["servmsg"]);
+                this.parseServerMsg(dataJson["servmsg"], dataJson);
         };
         this.makeApiCall(callback);
     }
@@ -203,7 +203,7 @@ function SoR_Notifier(config) {
         });
     }
 
-    this.parseForts = function (data) {
+    this.parseForts = function (data, allData) {
         /*[{"id":"1","data":"{\"forts\": [{\"name\": \"Shining Way\", \"pop1\": \"241\", \"pop2\": \"180\", \"owner\": \"Order\", \"stage\": \"2\", \"health\": \"51\"}], \"keeps\": [{\"aao\": \"400\", \"bos\": [\"Neutral\", \"Neutral\", \"Order\", \"Neutral\"], \"name\": \"Reikland\", \"pop1\": \"25\", \"pop2\": \"5\", \"tier\": 4, \"keep1\": {\"obj\": \"Safe\", \"rank\": \"1\", \"owner\": \"Destruction\", \"rankup\": \"51\", \"status\": \"Safe\"}, \"keep2\": {\"obj\": \"Safe\", \"rank\": \"3\", \"owner\": \"Order\", \"rankup\": \"0\", \"status\": \"Safe\"}, \"aaoOwner\": \"Destruction\"}], \"zonelocks\": [{\"name\": \"Dwarfs v Greenskins\", \"owner\": \"Destruction\", \"pairing\": 1}]}","created_at":"2020-07-29 18:13:06","accessed":null}]
         */
         data.forEach((fort) => {
@@ -231,6 +231,45 @@ function SoR_Notifier(config) {
                 this.discord_Notifier.sendDiscordNotification(embed, "fort");
             }
             this.setAttacked(fortName, defender);
+
+
+            const stage = fort["stage"];
+            const health = fort["health"];
+
+            if(allData.hasOwnProperty("zonelocks")) {
+                const zonelocks = allData["zonelocks"];
+
+                const lockerChecker = (accum, current) => current || accum["owner"] === attacker;
+
+                const isZoneLockedForAttacker = zonelocks.reduce(lockerChecker, false);
+
+
+                if(isZoneLockedForAttacker && stage == 3 && health < 90) {
+                    const cityIncName = fortName + "CityInc";
+
+                    if(this.shouldNotify(cityIncName, defender)) {
+                        const orderPop = (attacker === "Order"?fort["pop1"]:fort["pop2"]);
+                        const destroPop = (attacker === "Order"?fort["pop2"]:fort["pop1"]);
+
+                        const color = (defender==="Order")?"#ff0000":"#0000ff";
+
+                        const embed = new MessageBuilder()
+                            .setTitle(defender + " city incoming!")
+                            .setText(fortName + " lord at " + health + "%")
+                            .addField('Players', 'Order: ' + orderPop + "; Destruction: " + destroPop)
+                            .addField('Details', "For more details visit [sor_online](https://soronline.us)")
+                            .setColor(color)
+                            .setThumbnail(config.IMAGE_URL)
+                            .setFooter('Created by Kalell with the help of Ruke')
+                            .setImage(config.IMAGE_URL)
+                            .setTimestamp();
+
+                        this.discord_Notifier.sendDiscordNotification(embed, "cityInc");
+                    }
+
+                    this.setAttacked(cityIncName, defender);
+                }
+            }
         });
     }
 

@@ -31,6 +31,7 @@ const SoR_Config = {
         "4": [VZ_test_SoR],
         "pre_fort": [VZ_test_SoR, VZ_offi_SoR],
         "fort": [VZ_test_SoR, VZ_offi_SoR],
+        "cityInc": [VZ_test_SoR, VZ_offi_SoR],
         "city": [VZ_test_SoR, VZ_offi_SoR],
     },
 }
@@ -45,6 +46,7 @@ SoR_Config.webhooks = {
     "4": [VZ_test_SoR],
     "pre_fort": [VZ_test_SoR],
     "fort": [VZ_test_SoR],
+    "cityInc": [VZ_test_SoR],
     "city": [VZ_test_SoR],
 };
 

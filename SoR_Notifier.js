@@ -108,8 +108,8 @@ function SoR_Notifier(config) {
 
             const data = json[0].data;
             const dataJson = JSON.parse(data);
-            if(dataJson.hasOwnProperty("keeps"), dataJson)
-                this.parseKeeps(dataJson["keeps"]);
+            if(dataJson.hasOwnProperty("keeps"))
+                this.parseKeeps(dataJson["keeps"], dataJson);
 
             if(dataJson.hasOwnProperty("forts"))
                 this.parseForts(dataJson["forts"], dataJson);
@@ -274,7 +274,7 @@ function SoR_Notifier(config) {
     }
 
     this.parseKeeps = function(data) {
-        data.forEach((region) => {
+        data.forEach(region => {
             this.parseRegion(region)
         })
     }
